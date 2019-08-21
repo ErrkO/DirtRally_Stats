@@ -52,7 +52,7 @@ CREATE TABLE Stages(
 
 CREATE TABLE StageDetails(
     SDetailsID INT AUTO_INCREMENT
-     StageID INT
+    ,StageID INT
     ,DriverID INT
     ,VehicleID INT
     ,StageTime TIME
