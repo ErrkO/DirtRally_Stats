@@ -1,10 +1,4 @@
-DROP TABLE Drivers;
-DROP TABLE Class;
-DROP TABLE Vehicles;
-DROP TABLE Locations;
-DROP TABLE Events;
-DROP TABLE Stages;
-DROP TABLE StageDetails;
+DROP TABLE IF EXISTS Drivers;
 
 CREATE TABLE Drivers(
      DriverID INT AUTO_INCREMENT
@@ -14,11 +8,15 @@ CREATE TABLE Drivers(
     ,PRIMARY KEY (DriverID)
 );
 
+DROP TABLE IF EXISTS Class;
+
 CREATE TABLE Class(
      ClassID INT AUTO_INCREMENT
-    ,ClassName VARCHAR(20)
+    ,ClassName VARCHAR(100)
     ,PRIMARY KEY (ClassID)
 );
+
+DROP TABLE IF EXISTS Vehicles;
 
 CREATE TABLE Vehicles(
      VehicleID INT AUTO_INCREMENT
@@ -27,12 +25,16 @@ CREATE TABLE Vehicles(
     ,PRIMARY KEY (VehicleID)
 );
 
+DROP TABLE IF EXISTS Locations;
+
 CREATE TABLE Locations(
      LocationID INT AUTO_INCREMENT
     ,LocationDesc VARCHAR(100)
     ,LocationCountry VARCHAR(50)
     ,PRIMARY KEY (LocationID)
 );
+
+DROP TABLE IF EXISTS Events;
 
 CREATE TABLE Events(
      EventID INT AUTO_INCREMENT
@@ -41,20 +43,24 @@ CREATE TABLE Events(
     ,PRIMARY KEY (EventID)
 );
 
+DROP TABLE IF EXISTS Stages;
+
 CREATE TABLE Stages(
      StageID INT AUTO_INCREMENT
     ,EventID INT
     ,SubStage VARCHAR(50)
     ,SubStageNumber INT
-    ,Condition VARCHAR(50)
+    ,Conditions VARCHAR(50)
     ,PRIMARY KEY (StageID)
 );
+
+DROP TABLE IF EXISTS StageDetails;
 
 CREATE TABLE StageDetails(
     SDetailsID INT AUTO_INCREMENT
     ,StageID INT
     ,DriverID INT
     ,VehicleID INT
-    ,StageTime TIME
+    ,StageTime TIME(3)
     ,PRIMARY KEY (SDetailsID)
 );
