@@ -1,8 +1,3 @@
-class Driver:
-
-    DriverID = 0
-    FName = ''
-
 class Stage:
 
     DriverID = 0
