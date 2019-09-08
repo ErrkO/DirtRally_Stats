@@ -17,7 +17,6 @@ class DBPacket:
     ClassName = ''
     Location = ''
     VehicleName = ''
-    Location = ''
     Stages = []
     comments = ''
 
@@ -55,6 +54,23 @@ def FormatDate(item):
 
     return year + '-' + month + '-' + day
 
+def FormatTime(item):
+
+    if len(item) == 8:
+
+        return '00:0' + item
+
+    elif len(item) == 11:
+
+        return '0' + item
+
+    elif len(item) == 9:
+        return '00:' + item
+
+    else:
+
+        return 'Broken'
+
 # use creds to create a client to interact with the Google Drive API
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
@@ -69,13 +85,10 @@ sheet = client.open("DiRT RALLY 2.0 STATS ").sheet1
 list_of_hashes = sheet.get_all_values()
 
 rows = GetRowsWithValues(list_of_hashes)
-
 packet = DBPacket()
 packets = []
 
 for row in rows:
-
-    print(row)
 
     if re.match(r'^Week',row[0]):
 
@@ -84,7 +97,6 @@ for row in rows:
             if item != '':
 
                 if re.match(r'^Week',item):
-                    packets.append(packet)
                     packet = DBPacket()
             
                     weekstr = item
@@ -95,6 +107,7 @@ for row in rows:
                     splits.pop(0)
                     seperator = ' '
                     packet.Location = seperator.join(splits)
+                    packets.append(packet)
 
                 elif re.match(r'Class: ',item):
 
@@ -129,8 +142,56 @@ for row in rows:
                     packet.EndDate = enddate
 
                 else:
-                    packet.comments += item
-                    print(item)
+                    packet.comments += item + ', '
+
+    elif re.match(r'.* - .*',row[0]):
+
+        i = 0
+
+        if row[1] != '':
+
+            for item in row:
+
+                if item != '':
+
+                    if re.match(r'.* - .*',item):
+
+                        packet.DriverName = re.split(r' - ',item)[0]
+                        packet.comments += item + ', '
+
+                    elif re.match(r'^\w',item):
+
+                        packet.VehicleName = item
+
+                    elif re.match(r'^\d',item):
+                        
+                        packet.Stages[i].StageTime = item
+                        i += 1
+
+    else:
+
+        for item in row:
+
+            if item != '':
+
+                packet.comments += item + ', '
+
+
+    for packet in packets:
+
+        print('EventID = ',packet.EventID)
+        print('StartDate = ',packet.StartDate)
+        print('EndDate = ',packet.EndDate)
+        print('DriverName = ',packet.DriverName)
+        print('ClassName = ',packet.ClassName)
+        print('Location = ',packet.Location)
+        print('VehicleName = ',packet.VehicleName)
+        print('comments = ',packet.comments)
+
+        for stage in packet.Stages:
+
+            print('StageTime = ',stage.StageTime)
+            print('StageName = ',stage.StageName)
 
     #print(packet.EventID,packet.ClassName,packet.Location,packet.StartDate,packet.EndDate)
 
