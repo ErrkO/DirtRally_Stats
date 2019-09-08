@@ -7,6 +7,7 @@ class Stage:
 
     DriverName = ''
     StageTime = []
+    VehicleName = ''
 
 class DBPacket:
 
@@ -15,10 +16,23 @@ class DBPacket:
     EndDate = ''
     ClassName = ''
     Location = ''
-    VehicleName = ''
     comments = []
     StageNames = []
     Stages = []
+    IsFinished = True
+
+    def __str__(self):
+
+        seperator = ''
+
+        string = ('EventID = ' + self.EventID +
+                 '\nStartDate = ' + self.StartDate +
+                 '\nEndDate = ' + self.EndDate +
+                 '\nClassName = ' + self.ClassName +
+                 '\nLocation = ' + self.Location + 
+                 '\nComments = ' + seperator.join(self.comments))
+
+        return string
 
 def IsRowEmpty(row):
 
@@ -79,30 +93,24 @@ def GetStageNamesFromRow(row):
     stageNames = []
 
     for item in row:
-        if not re.match(r'^(Week|Class: )',item):
-            stageNames.append(item)
-
+        if item != '':
+            if not re.match(r'^(Week|Class: )',item):
+                stageNames.append(item)
     return stageNames
 
-def GetStageTimesFromRow(driverName,row):
+def GetStageTimesFromRow(driverName,vehicle,row):
     stages = []
 
     for item in row:
         stage = Stage()
-        if re.match(r'^\d*:',item):
+        if re.match(r'^(\d*:|Retired)',item):
             stageTime = FormatTime(item)
             stage.DriverName = driverName
-            stage.StageTime.append(stageTime)
-            stages.append(stage)
-
-        elif re.match(r'Retired',item):
-            stageTime = FormatTime(item)
-            stage.DriverName = driverName
+            stage.VehicleName = vehicle
             stage.StageTime.append(stageTime)
             stages.append(stage)
 
     stages.pop(0)
-    print(len(stages))
     return stages
 
 
@@ -122,6 +130,7 @@ list_of_hashes = sheet.get_all_values()
 rows = GetRowsWithValues(list_of_hashes)
 packet = DBPacket()
 packets = []
+stagesDriver = []
 
 """ for row in rows:
 
@@ -216,9 +225,13 @@ for row in rows:
 
     #print(row)
 
+    # Start of line 1 of the block
+    # Gets the event, class, and stage names
     if re.match(r'^Week',row[0]):
 
         packet = DBPacket()
+        if packet != []:
+            packets.append(packet)
 
         weekstr = row[0]
         splits = re.split(r' ',weekstr)
@@ -228,7 +241,6 @@ for row in rows:
         splits.pop(0)
         seperator = ' '
         packet.Location = seperator.join(splits)
-        packets.append(packet)
 
         if re.match(r'Class: ',row[1]):
 
@@ -236,11 +248,10 @@ for row in rows:
 
             packet.ClassName = classname[1]
 
-        else:
-            stageNames = []
-            stageNames.append(GetStageNamesFromRow(row))
-            
+        packet.StageNames = (GetStageNamesFromRow(row))
 
+    # Start of line 2 of the block
+    # Gets the start and end date; and the comments
     elif re.match(r'^\d.*-.*',row[0]):
 
         for item in row:
@@ -255,6 +266,7 @@ for row in rows:
 
                     if dates[1] == '':
                         enddate = ''
+                        packet.IsFinished = False
 
                     else:
                         enddate = FormatDate(dates[1])
@@ -266,21 +278,22 @@ for row in rows:
                     comments = ''
                     comments += item + ', '
 
-    elif re.match(r'.* - .*',row[0]):
+    elif re.match(r'.* - ',row[0]):
 
-        print(row)
+        stagesDriver = []
 
         if row[1] != '':
 
-            if re.match(r'.* - .*',row[0]):
+            if re.match(r'.* - ',row[0]):
 
-                driverName = re.split(r' - ',row[0])[0]
-                packet.comments += row[0] + ', '
+                splits = re.split(r' - ',row[0])
+                driverName = splits[0]
+                packet.comments += splits[1] + ', '
 
             if re.match(r'^[A-Za-z]',row[1]):
-                packet.VehicleName = row[1]
+                VehicleName = row[1]
 
-            packet.Stages.append(GetStageTimesFromRow(driverName,row))
+            packet.Stages = (GetStageTimesFromRow(driverName,VehicleName,row))
                     
     else:
 
@@ -290,18 +303,16 @@ for row in rows:
 
                 packet.comments += item + ', '
 
-"""for packet in packets:
+for packet in packets:
 
-    print('')
-    print('EventID = ',packet.EventID)
-    print('StartDate = ',packet.StartDate)
-    print('EndDate = ',packet.EndDate)
-    print('ClassName = ',packet.ClassName)
-    print('Location = ',packet.Location)
-    print('VehicleName = ',packet.VehicleName)
-    print('comments = ',packet.comments)
+    if packet.IsFinished:
+        print('')
+        print(packet)
 
-    for stage in packet.Stages:
+        for i in range(0,6):
+            stage = packet.Stages[i]
         
-        print('DriverName = ',Stage.DriverName)
-        print('StageTime = ',stage.StageTime) #"""
+            print('DriverName = ',stage.DriverName)
+            print('VehicleName = ',stage.VehicleName)
+            print('StageName = ',packet.StageNames[i])
+            print('StageTime = ',stage.StageTime[i]) #"""
