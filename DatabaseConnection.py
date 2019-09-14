@@ -22,6 +22,8 @@ class DBPacket:
 
 try:
 
+    DriverID = (1,)
+    
     with open('DatabaseConectionValues.json','r') as f:
         dbVars = json.load(f)
 
@@ -36,16 +38,20 @@ try:
         cursor = connection.cursor()
         cursor.execute("select database();")
         record = cursor.fetchone()
-        print("Your connected to database: ", record)
+        print("Your connected to database: ", record[0])
 
-    select_test = """SELECT * FROM Drivers"""
+    sql_statement = """SELECT * FROM Drivers WHERE DriverID = %s"""
+    #sql_statement = "SELECT * FROM Drivers"
 
     cursor = connection.cursor()
-    result = cursor.execute(select_test)
-    print(cursor.fetchall())
+    result = cursor.execute(sql_statement,DriverID)
+    #result = cursor.execute(sql_statement)
+    Drivers = cursor.fetchall()
+    driver = Drivers[0]
+    print('\nID: %s\nName: %s %s\n' % (driver[0],driver[1],driver[2]))
 
 except Error as e:
-    print("Error while connecting to MySQL", e)
+    print("Error", e)
 finally:
     if (connection.is_connected()):
         cursor.close()

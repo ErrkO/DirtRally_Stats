@@ -16,6 +16,7 @@ class DBPacket:
     EndDate = ''
     ClassName = ''
     Location = ''
+    condtions = ''
     comments = []
     StageNames = []
     Stages = []
@@ -113,125 +114,9 @@ def GetStageTimesFromRow(driverName,vehicle,row):
     stages.pop(0)
     return stages
 
-
-# use creds to create a client to interact with the Google Drive API
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
-client = gspread.authorize(creds)
-
-# Find a workbook by name and open the first sheet
-# Make sure you use the right name here.
-sheet = client.open("DiRT RALLY 2.0 STATS ").sheet1
-
-# Extract and print all of the values
-list_of_hashes = sheet.get_all_values()
-
-rows = GetRowsWithValues(list_of_hashes)
-packet = DBPacket()
-packets = []
-stagesDriver = []
-
-""" for row in rows:
-
-    #print(row)
+def GetStartOfBlock(row,packet):
 
     if re.match(r'^Week',row[0]):
-
-        for item in row:
-
-            #if item != '':
-
-            if re.match(r'^Week',item):
-                packet = DBPacket()
-        
-                weekstr = item
-                splits = re.split(r' ',weekstr)
-
-                packet.EventID = re.split(r':',splits[1])[0]
-                splits.pop(0)
-                splits.pop(0)
-                seperator = ' '
-                packet.Location = seperator.join(splits)
-                packets.append(packet)
-
-            elif re.match(r'Class: ',item):
-
-                classname = re.split(r'Class: ',item)
-
-                packet.ClassName = classname[1]
-
-            else:
-                stage = Stage()
-                stage.StageName = item
-                packet.Stages.append(stage)
-
-    elif re.match(r'^\d.*-.*',row[0]):
-
-        for item in row:
-
-            if item != '':
-
-                if re.match(r'^\d.*-.*',item):
-
-                    dates = re.split(r'-',item)
-
-                    startdate = FormatDate(dates[0])
-
-                    if dates[1] == '':
-                        enddate = ''
-
-                    else:
-                        enddate = FormatDate(dates[1])
-
-                    packet.StartDate = startdate
-                    packet.EndDate = enddate
-
-                else:
-                    packet.comments += item + ', '
-
-    elif re.match(r'.* - .*',row[0]):
-
-        if row[1] != '':
-            
-            i = 0
-
-            for item in row:
-
-                if item != '':
-
-                    if re.match(r'.* - .*',item):
-
-                        packet.DriverName = re.split(r' - ',item)[0]
-                        packet.comments += item + ', '
-
-                    elif re.match(r'^^[A-Za-z]',item):
-
-                        packet.VehicleName = item
-
-                    elif re.match(r'^\d',item):
-                        packet.Stages[i].StageTime = item
-                        i += 1
-
-    else:
-
-        for item in row:
-
-            if item != '':
-
-                packet.comments += item + ', ' """
-
-for row in rows:
-
-    #print(row)
-
-    # Start of line 1 of the block
-    # Gets the event, class, and stage names
-    if re.match(r'^Week',row[0]):
-
-        packet = DBPacket()
-        if packet != []:
-            packets.append(packet)
 
         weekstr = row[0]
         splits = re.split(r' ',weekstr)
@@ -250,9 +135,10 @@ for row in rows:
 
         packet.StageNames = (GetStageNamesFromRow(row))
 
-    # Start of line 2 of the block
-    # Gets the start and end date; and the comments
-    elif re.match(r'^\d.*-.*',row[0]):
+    return packet
+
+def GetDateRow(row,packet):
+    if re.match(r'^\d.*-.*',row[0]):
 
         for item in row:
 
@@ -278,9 +164,10 @@ for row in rows:
                     comments = ''
                     comments += item + ', '
 
-    elif re.match(r'.* - ',row[0]):
+    return packet
 
-        stagesDriver = []
+def GetStageInformation(row,packet):
+    if re.match(r'.* - ',row[0]):
 
         if row[1] != '':
 
@@ -293,15 +180,84 @@ for row in rows:
             if re.match(r'^[A-Za-z]',row[1]):
                 VehicleName = row[1]
 
+            else:
+                VehicleName = ''
+
             packet.Stages = (GetStageTimesFromRow(driverName,VehicleName,row))
-                    
+
+    return packet
+
+def CheckForElse(row):
+    if re.match(r'^Week',row[0]):
+        return False
+
+    if re.match(r'^\d.*-.*',row[0]):
+        return False
+
+    if re.match(r'.* - ',row[0]):
+        return False
+
+    return True
+
+# use creds to create a client to interact with the Google Drive API
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+client = gspread.authorize(creds)
+
+# Find a workbook by name and open the first sheet
+# Make sure you use the right name here.
+sheet = client.open("DiRT RALLY 2.0 STATS ").sheet1
+
+# Extract and print all of the values
+list_of_hashes = sheet.get_all_values()
+
+rows = GetRowsWithValues(list_of_hashes)
+packet = DBPacket()
+packets = []
+stagesDriver = []
+
+print(len(rows))
+
+for index,row in enumerate(rows):
+
+    skip = False
+
+    if index < (len(rows) - 1):
+        next_row = rows[index + 1]
     else:
+        skip = True
+        
 
-        for item in row:
 
-            if item != '':
+    if not skip:
 
-                packet.comments += item + ', '
+        # Check for end of block
+        if re.match(r'^Week',next_row[0]):
+            if packet != [] and packet.IsFinished:
+                packets.append(packet)
+                packet = DBPacket()
+        
+        # Start of line 1 of the block
+        # Gets the event, class, and stage names
+        packet = GetStartOfBlock(row,packet)
+
+        # Start of line 2 of the block
+        # Gets the start and end date; and the comments
+        packet = GetDateRow(row,packet)
+
+        # Start of line 3 of the block
+        # Gets the stage and driver information
+        packet = GetStageInformation(row,packet)
+
+        # Dump Everything else into the comments          
+        if CheckForElse(row):
+
+            for item in row:
+
+                if item != '':
+
+                    packet.comments += item + ', '
 
 for packet in packets:
 
