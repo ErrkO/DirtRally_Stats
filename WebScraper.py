@@ -43,7 +43,7 @@ class DBPacket:
                  '\nClassName = ' + self.ClassName +
                  '\nLocation = ' + self.Location + 
                  '\nComments = ' + seperator.join(self.comments) +
-                 '\n\t\t\t\t\t')
+                 '\n\t\t\t\t     ')
 
         for name in self.StageNames:
             string += ' | ' + name
