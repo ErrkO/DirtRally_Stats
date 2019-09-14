@@ -35,6 +35,27 @@ class DBPacket:
 
         return string
 
+def MatchWeekRow(item):
+
+    if re.match(r'^Week',item):
+        return True
+
+    return False
+
+def MatchDateRow(item):
+
+    if re.match(r'^\d.*-.*',item):
+        return True
+
+    return False
+
+def MatchDriverRow(item):
+
+    if re.match(r'.* - ',item):
+        return True
+
+    return False
+
 def IsRowEmpty(row):
 
     for item in row:
@@ -48,7 +69,7 @@ def GetRowsWithValues(List_Of_Values):
 
     rows = []
 
-    for row in list_of_hashes:
+    for row in List_Of_Values:
 
         if not IsRowEmpty(row):
             rows.append(row)
@@ -127,6 +148,12 @@ def GetStartOfBlock(row,packet):
         seperator = ' '
         packet.Location = seperator.join(splits)
 
+        if packet.EventID == 'X':
+            packet.IsFinished = False
+
+        elif packet.Location == '':
+            packet.IsFinished = False
+
         if re.match(r'Class: ',row[1]):
 
             classname = re.split(r'Class: ',row[1])
@@ -183,7 +210,7 @@ def GetStageInformation(row,packet):
             else:
                 VehicleName = ''
 
-            packet.Stages = (GetStageTimesFromRow(driverName,VehicleName,row))
+            packet.Stages.append(GetStageTimesFromRow(driverName,VehicleName,row))
 
     return packet
 
@@ -199,39 +226,58 @@ def CheckForElse(row):
 
     return True
 
-# use creds to create a client to interact with the Google Drive API
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
-client = gspread.authorize(creds)
+def GetAllRows():
 
-# Find a workbook by name and open the first sheet
-# Make sure you use the right name here.
-sheet = client.open("DiRT RALLY 2.0 STATS ").sheet1
+    # use creds to create a client to interact with the Google Drive API
+    scope = ['https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+    client = gspread.authorize(creds)
 
-# Extract and print all of the values
-list_of_hashes = sheet.get_all_values()
+    # Find a workbook by name and open the first sheet
+    # Make sure you use the right name here.
+    sheet = client.open("DiRT RALLY 2.0 STATS ").sheet1
 
-rows = GetRowsWithValues(list_of_hashes)
-packet = DBPacket()
-packets = []
-stagesDriver = []
+    # Extract and print all of the values
+    list_of_hashes = sheet.get_all_values()
 
-print(len(rows))
+    return GetRowsWithValues(list_of_hashes)
 
-for index,row in enumerate(rows):
+def Main():
 
-    skip = False
+    rows = GetAllRows()
 
-    if index < (len(rows) - 1):
-        next_row = rows[index + 1]
-    else:
-        skip = True
-        
+    packet = DBPacket()
+    packets = []
+    stagesDriver = []
 
+    eventRows = []
+    events = []
 
-    if not skip:
+    for index,row in enumerate(rows):
 
+        skip = False
+
+        if index < (len(rows) - 1):
+            next_row = rows[index + 1]
+        else:
+            skip = True
+
+        if not skip:
+
+            if MatchWeekRow(next_row[0]):
+                eventRows.append(row)
+                events.append(eventRows)
+                eventRows = []
+
+            else:
+                eventRows.append(row)
+
+    print(1)
+
+Main()
+
+"""
         # Check for end of block
         if re.match(r'^Week',next_row[0]):
             if packet != [] and packet.IsFinished:
@@ -257,9 +303,9 @@ for index,row in enumerate(rows):
 
                 if item != '':
 
-                    packet.comments += item + ', '
+                    packet.comments += item + ', ' #"""
 
-for packet in packets:
+"""for packet in packets:
 
     if packet.IsFinished:
         print('')
