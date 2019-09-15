@@ -322,6 +322,41 @@ def PrintAll(packets):
             
             print(stage)
 
+def GetDBPackets():
+
+    packet = DBPacket()
+    packets = []
+
+    events = GetEvents()    
+
+    events = DropUnfinishedEvents(events)
+
+    for event in events:
+
+        # Start of line 1 of the block
+        # Gets the event, class, and stage names
+        packet = GetStartOfBlock(event[0],packet)
+
+        # Start of line 2 of the block
+        # Gets the start and end date; and the comments
+        packet = GetDateRow(event[1],packet)
+
+        # Start of line 3 of the block
+        # Gets the stage and driver information
+        for i in range(2,len(event)):
+            if MatchDriverRow(event[i]):
+                packet = GetStageInformation(event[i],packet)
+
+        packets.append(packet)
+        del packet
+        packet = DBPacket()
+        packet.Stages = []
+        packet.comments = []
+
+        # Dump Everything else into the comments
+
+    return packets
+
 def Main():
 
     packet = DBPacket()
@@ -356,5 +391,3 @@ def Main():
         # Dump Everything else into the comments
 
     PrintAll(packets)
-
-Main()
