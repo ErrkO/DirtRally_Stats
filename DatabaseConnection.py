@@ -61,7 +61,9 @@ def PopulateInfo(cursor):
 
 def CheckIfExists(id,dbinfo,cursor):
 
-    query = "SELECT " + dbinfo.IDName + " FROM " + dbinfo.TableName + " WHERE " + dbinfo.IDName + " = " + str(id)
+    query = ("SELECT " + dbinfo.IDName + 
+             " FROM " + dbinfo.TableName + 
+             " WHERE " + dbinfo.IDName + " = " + str(id))
 
     cursor.execute(query)
     record = cursor.fetchone()
@@ -70,6 +72,30 @@ def CheckIfExists(id,dbinfo,cursor):
         return False
     else:
         return True
+
+def GetID(index,dbinfo,cursor):
+
+    tname = ('AliasName',
+             'ClassName',
+             'Fname',
+             '',
+             'LocationDesc',
+             'LocationCountry',
+             '',
+             '',
+             'SubstageName',
+             'VehicleName')
+
+    query = ("SELECT " + dbinfo.IDName + 
+             " FROM " + dbinfo.TableName +
+             " WHERE " + tname[index] +
+             " = " + packet)
+
+def ConvertPacketToBBVals(packet,cursor):
+    pass
+
+def InsertEvent(packet,cursor):
+    query = "INSERT INTO Events Values (" + packet.Location
 
 def SyntaxTest(cursor):
     infos = PopulateInfo(cursor)
