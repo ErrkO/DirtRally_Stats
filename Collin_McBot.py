@@ -32,9 +32,24 @@ def GetEventDetails(update,context):
 
 def EventID(update,context):
     id = update.message.text
-    print(id)
-    update.message.reply_text("Still Under Construction")
+    reply_str = (#"<pre>\n" +
+                 "EventID | Driver |   Stage 01   |   Stage 02   |   Stage 03   |   Stage 04   |   Stage 05   |   Stage 06  " +
+                 "\n-------|--------|--------------|--------------|--------------|--------------|--------------|-------------" +
+                 "\n   01  |0  Erk  | 00:03:00.000 | 00:03:00.000 | 00:03:00.000 | 00:03:00.000 | 00:03:00.000 | 00:03:00.000"
+                 )#+ "\n</pre>")
+
+    #reply_str = '**BOLD**'
+    #update.message.reply_text(reply_str)
+    context.bot.send_message(chat_id=update.message.chat_id, text=reply_str, parse_mode='Markdown')
     return ConversationHandler.END
+
+def FormatTable(headers,data):
+    html = "<table>\n<tr>"
+
+    for header in headers:
+        html += "\n<th>" + header + "</th>"
+    
+    
 
 @restricted
 def CustomeQuery(update,context):
