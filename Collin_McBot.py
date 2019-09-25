@@ -1,4 +1,5 @@
 import logging
+import json
 from functools import wraps
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
@@ -12,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 EVENTID,STAGEID = range(2)
 
-LIST_OF_ADMINS = []
+vars = json.load(open('Telegram.json','r'))
+LIST_OF_ADMINS = vars["ADMINS"]
 
 def restricted(func):
     @wraps(func)
@@ -31,7 +33,8 @@ def GetEventDetails(update,context):
 def EventID(update,context):
     id = update.message.text
     print(id)
-    context.bot.send_message(chat_id=update.message.chat_id, text="Still Under Construction")
+    #context.bot.send_message(chat_id=update.message.chat_id, text="Still Under Construction")
+    update.message.reply_text("Still Under Construction")
     return ConversationHandler.END
 
 @restricted
@@ -50,7 +53,7 @@ def error(update, context):
 
 def Main():
 
-    updater = Updater('', use_context=True)
+    updater = Updater(vars["TOKEN"], use_context=True)
     dispatcher = updater.dispatcher
 
     #bot = telegram.Bot(token='')
