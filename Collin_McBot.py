@@ -49,7 +49,17 @@ def FormatTable(headers,data):
     for header in headers:
         html += "\n<th>" + header + "</th>"
     
-    
+    html += "\n</tr>"
+
+    for row in data:
+        html += "\n<tr>"
+        for item in row:
+            html += "\n<td>" + item + "</td>"
+        html += "\n</tr>"
+
+    html += "\n</table>"
+
+    return html
 
 @restricted
 def CustomeQuery(update,context):
