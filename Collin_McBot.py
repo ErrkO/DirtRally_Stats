@@ -33,14 +33,16 @@ def GetEventDetails(update,context):
 def EventID(update,context):
     id = update.message.text
     print(id)
-    #context.bot.send_message(chat_id=update.message.chat_id, text="Still Under Construction")
     update.message.reply_text("Still Under Construction")
     return ConversationHandler.END
 
 @restricted
+def CustomeQuery(update,context):
+    pass
+
+@restricted
 def GetUserID(update,context):
     user_id = update.effective_user.id
-
     update.message.reply_text(str(user_id) + ": Your user ID")
 
 def Cancel(update,context):
@@ -55,8 +57,6 @@ def Main():
 
     updater = Updater(vars["TOKEN"], use_context=True)
     dispatcher = updater.dispatcher
-
-    #bot = telegram.Bot(token='')
 
     UserID_handler = CommandHandler('getuserid',GetUserID)
 
